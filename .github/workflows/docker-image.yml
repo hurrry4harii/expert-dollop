@@ -1,0 +1,67 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: 
+    - development
+    - main
+    - staging
+    
+jobs:
+
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+    if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development"'
+    
+    stepsdev:
+    # checkout the repo
+
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v3
+
+    - name: Login Docker
+      uses: azure/docker-login@latest
+      with:
+          login-server: acritengmgmtdev.azurecr.io
+          username: ${{ secrets.ACR_USERNAME_DEV }}
+          password: ${{ secrets.ACR_PASSWORD_DEV }}
+    - run: |
+          docker build . -t acritengmgmtdev.azurecr.io/livedatafeed:latest
+          docker push acritengmgmtdev.azurecr.io/livedatafeed:latest
+
+    elseif: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    
+    stepsmain:
+    # checkout the repo
+
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v3
+
+    - name: Login Docker
+      uses: azure/docker-login@latest
+      with:
+          login-server: acritengmgmtprodwestus2.azurecr.io
+          username: ${{ secrets.ACR_USERNAME_MAIN }}
+          password: ${{ secrets.ACR_PASSWORD_MAIN }}
+    - run: |
+          docker build . -t acritengmgmtprodwestus2.azurecr.io/livedatafeed:latest
+          docker push acritengmgmtprodwestus2.azurecr.io/livedatafeed:latest      
+
+    else: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging"'
+    
+    stepsstage:
+    # checkout the repo
+
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v3
+
+    - name: Login Docker
+      uses: azure/docker-login@latest
+      with:
+          login-server: acritengmgmtstaging.azurecr.io
+          username: ${{ secrets.ACR_USERNAME_STAGE }}
+          password: ${{ secrets.ACR_PASSWORD_STAGE }}
+    - run: |
+          docker build . -t acritengmgmtstaging.azurecr.io/livedatafeed:latest
+          docker push acritengmgmtstaging.azurecr.io/livedatafeed:latest
